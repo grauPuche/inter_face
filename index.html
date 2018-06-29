@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<title>inter(FACE)</title>
+	<meta charset="utf-8">
+	<style>
+		#overlay {
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			-o-transform: scaleX(-1);
+			-webkit-transform: scaleX(-1);
+			transform: scaleX(-1);
+			-ms-filter: fliph;
+			/*IE*/
+			filter: fliph;
+			/*IE*/
+		}
+
+		#videoel {
+			-o-transform: scaleX(-1);
+			-webkit-transform: scaleX(-1);
+			transform: scaleX(-1);
+			-ms-filter: fliph;
+			/*IE*/
+			filter: fliph;
+			/*IE*/
+			border-bottom-left-radius: 6px;
+		}
+
+		#container {
+			position: relative;
+			width: 800px;
+			/*margin : 0px auto;*/
+		}
+
+		#content {
+			font-family: Arial, Helvetica, sans-serif;
+			margin-top: 50px;
+			margin-bottom: 50px;
+			margin-left: auto;
+			margin-right: auto;
+			max-width: 800px;
+		}
+
+		p {
+			padding-right: 5px;
+			padding-left: 5px;
+		}
+
+		#FILE {
+			background-color: black;
+			border: none;
+			color: white;
+			padding: 20px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
+			margin-left: 4px;
+			padding-top: 5px;
+			padding-bottom: 5px;
+			cursor: pointer;
+			border-top-right-radius: 6px;
+			border-bottom-right-radius: 6px;
+			height: 73.5px;
+		}
+	</style>
+	<script>
+		// getUserMedia only works over https in Chrome 47+, so we redirect to https. Also notify user if running from file.
+		if (window.location.protocol == "file:") {
+			alert(
+				"You seem to be running this example directly from a file. Note that these examples only work when served from a server or localhost due to canvas cross-domain restrictions."
+			);
+		} else if (window.location.hostname !== "localhost" && window.location.protocol !== "https:") {
+			window.location.protocol = "https";
+		}
+	</script>
+	<!-- <script type="text/javascript">
+
+			var _gaq = _gaq || [];
+			_gaq.push(['_setAccount', 'UA-32642923-1']);
+			_gaq.push(['_trackPageview']);
+
+			(function() {
+				var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+				ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+			})();
+
+		</script> -->
+</head>
+
+<body>
+	<script src="./js/utils.js"></script>
+	<script src="./js/clmtrackr.js"></script>
+	<script src="./js/model_pca_20_svm.js"></script>
+	<script src="./js/stats.js"></script>
+	<!-- <script src="./js/d3.min.js"></script> -->
+	<script src="./js/emotion_classifier.js"></script>
+	<script src="./js/emotionmodel.js"></script>
+	<div id="content">
+<em style="font-size: 25px; position: relative;bottom: 5px;"><strong >inter(FACE)</strong></em>		<div id="container">
+			<video id="videoel" width="800" height="600" preload="auto" loop playsinline autoplay>
+			</video>
+			<canvas id="overlay" width="800" height="600"></canvas>
+		</div>
+
+		<script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
+		<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+
+		<script>
+			var vid = document.getElementById('videoel');
+			var vid_width = vid.width;
+			var vid_height = vid.height;
+			var overlay = document.getElementById('overlay');
+			var overlayCC = overlay.getContext('2d');
+
+			/********** check and set up video/webcam **********/
+
+			// function enablestart() {
+			// 	var startbutton = document.getElementById('startbutton');
+			// 	startbutton.value = "start";
+			// 	startbutton.disabled = null;
+			// }
+
+			function adjustVideoProportions() {
+				// resize overlay and video if proportions are different
+				// keep same height, just change width
+				var proportion = vid.videoWidth / vid.videoHeight;
+				vid_width = Math.round(vid_height * proportion);
+				vid.width = vid_width;
+				overlay.width = vid_width;
+			}
+
+			function gumSuccess(stream) {
+				// add camera stream if getUserMedia succeeded
+				if ("srcObject" in vid) {
+					vid.srcObject = stream;
+				} else {
+					vid.src = (window.URL && window.URL.createObjectURL(stream));
+				}
+				vid.onloadedmetadata = function () {
+					adjustVideoProportions();
+					vid.play();
+				}
+				vid.onresize = function () {
+					adjustVideoProportions();
+					if (trackingStarted) {
+						ctrack.stop();
+						ctrack.reset();
+						ctrack.start(vid);
+					}
+				}
+			}
+
+			function gumFail() {
+				alert(
+					"There was some problem trying to fetch video from your webcam. If you have a webcam, please make sure to accept when the browser asks for access to your webcam."
+				);
+			}
+			navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia ||
+				navigator.msGetUserMedia;
+			window.URL = window.URL || window.webkitURL || window.msURL || window.mozURL;
+			// check for camerasupport
+			if (navigator.mediaDevices) {
+				navigator.mediaDevices.getUserMedia({
+					video: true
+				}).then(gumSuccess).catch(gumFail);
+			} else if (navigator.getUserMedia) {
+				navigator.getUserMedia({
+					video: true
+				}, gumSuccess, gumFail);
+			} else {
+				alert("This demo depends on getUserMedia, which your browser does not seem to support. :(");
+			}
+
+			// vid.addEventListener('canplay', enablestart, false);
+
+			/*********** setup of emotion detection *************/
+
+			// set eigenvector 9 and 11 to not be regularized. This is to better detect motion of the eyebrows
+			pModel.shapeModel.nonRegularizedVectors.push(9);
+			pModel.shapeModel.nonRegularizedVectors.push(11);
+
+			var ctrack = new clm.tracker({
+				useWebGL: true
+			});
+			ctrack.init(pModel);
+			var trackingStarted = false;
+
+			function startVideo() {
+				// start video
+				console.log("video is live")
+				vid.play();
+				// start tracking
+				ctrack.start(vid);
+				trackingStarted = true;
+				// start loop to draw face
+				drawLoop();
+			}
+
+			function drawLoop() {
+				requestAnimFrame(drawLoop);
+				overlayCC.clearRect(0, 0, vid_width, vid_height);
+				//psrElement.innerHTML = "score :" + ctrack.getScore().toFixed(4);
+				if (ctrack.getCurrentPosition()) {
+					ctrack.draw(overlay);
+				}
+				var cp = ctrack.getCurrentParameters();
+
+
+
+				var er = ec.meanPredict(cp);
+				if (er) {
+					updateData(er);
+
+				}
+			}
+
+			var ec = new emotionClassifier();
+			ec.init(emotionModel);
+			var emotionData = ec.getBlank();
+
+			function updateData(data) {
+
+				var inted = Math.floor((data[0].value) * 100);
+				if (inted > 85 && recording == false) {
+					REC();
+				}
+
+				var stringed = inted.toString();
+				// console.log(stringed);
+				document.getElementById('data').innerHTML = stringed;
+				// update
+			}
+
+			function captureCamera(callback) {
+				navigator.mediaDevices.getUserMedia({
+					audio: true,
+					video: true
+				}).then(function (camera) {
+					callback(camera);
+				}).catch(function (error) {
+					alert('Unable to capture your camera. Please check console logs.');
+					console.error(error);
+				});
+			}
+
+			var recorder; // globally accessible
+			var recording = false;
+
+			function REC() {
+				recording = true;
+				captureCamera(function (camera) {
+					setSrcObject(camera, vid);
+					recorder = RecordRTC(camera, {
+						type: 'video'
+					});
+					recorder.startRecording();
+					// release camera on stopRecording
+					recorder.camera = camera;
+					console.log('b4stop')
+					setTimeout(STOPPER, 4500);
+
+				});
+			};
+
+			var RESULT;
+
+			function STOPPER() {
+				recorder.stopRecording(STOP);
+			}
+
+			function STOP() {
+				console.log('- - -');
+				console.log('after');
+				recorder.camera.stop();
+				RESULT = recorder.getBlob()
+				// console.log('blob', RESULT);
+				// console.log(RESULT)
+				recording = false;
+
+				var fileName = getFileName(fileExtension);
+
+				var file = new File([recorder.getBlob()], fileName, {
+					type: mimeType
+				});
+
+				invokeSaveAsDialog(file, file.name);
+
+				// recorder.destroy();
+				recorder = null;
+
+				startVideo();
+				
+			}
+
+			/******** stats ********/
+
+			// stats = new Stats();
+			// stats.domElement.style.position = 'absolute';
+			// stats.domElement.style.top = '0px';
+			// document.getElementById('container').appendChild( stats.domElement );
+
+			// update stats on every iteration
+			// document.addEventListener('clmtrackrIteration', function (event) {
+			// 	stats.update();
+			// }, false);
+
+			function getRandomString() {
+				if (window.crypto && window.crypto.getRandomValues && navigator.userAgent.indexOf('Safari') === -1) {
+					var a = window.crypto.getRandomValues(new Uint32Array(3)),
+						token = '';
+					for (var i = 0, l = a.length; i < l; i++) {
+						token += a[i].toString(36);
+					}
+					return token;
+				} else {
+					return (Math.random() * new Date().getTime()).toString(36).replace(/\./g, '');
+				}
+			}
+
+			var mimeType = 'video/webm';
+			var fileExtension = 'webm';
+			var type = 'video';
+			var recorderType;
+			var defaultWidth;
+			var defaultHeight;
+
+			function getFileName(fileExtension) {
+				var d = new Date();
+				var year = d.getUTCFullYear();
+				var month = d.getUTCMonth();
+				var date = d.getUTCDate();
+				return 'RecordRTC-' + year + month + date + '-' + getRandomString() + '.' + fileExtension;
+			}
+
+
+			startVideo();
+			console.log("video started");
+		</script>
+
+		<div style="padding: 10px; background-color: black; color: white; /* width: 630.8px; float: left;*/ border-top-right-radius: 6px;">
+			<strong id="data" style="font-size: 30px"></strong>
+			<br>
+			<em> go past
+				<strong>85</strong> to start recording. You do so by
+				<strong>raising your eyebrows. </strong>
+			</em>
+		</div>
+
+		<!-- <button id="FILE">
+			<strong>
+				<strong style="font-size: 30px">
+					<br>
+				</strong>
+				<em>download file</em>
+			</strong>
+		</button> -->
+
+		<p>This simple and hacked together experience is to demonstrate the idea that face tracking might be useful for other things
+			other than giving you bunny ears. </p>
+		<p>For a while I wanted to try doing something with this kind of tech, but as said, I wanted to go away from the kind of applications
+			that are being done at the moment. My interest was on using the face as an interface (heh..)</p>
+		<p>At first, the plan was to make a simple text-based narrative video game, where instead of writing what to do, you would
+			have to give a specific expression. Although the idea is feasible, to do it in one day is not. specially when diving into
+			a new technology.</p>
+		<p>So the obvious next step was to make something a bit more simple. So here we are. </p>
+		<p>The framework being used here is
+			<a href="https://github.com/auduno/clmtrackr">clmtrackr</a>. This experience is build from the emotion detection
+			<a href="https://www.auduno.com/clmtrackr/examples/clm_emotiondetection.html">example</a>. I used the example due to it having already part of what I needed, and trying to make a whole new model for the a single eyebrow movement was not worth the time.
+			<br> But this was not my first choice for a framework. The tracking is not very precise and it "jumps" a lot. My initial choice
+			was
+			<a href="https://tastenkunst.github.io/brfv4_javascript_examples/">brfv4</a>, which is very precise and gives a lot of information, but the documentation is not very 'prototyping-in-one-day
+			friendly' so I had to give it up. But for sure is going to be my 'go-to' next time I do a project with face tracking (it
+			just requires a bit more time to use it).</p>
+		<p> What this ended up being, if you haven't tried it already, is a video recording experience. And the interactions is through the eyebrows, when they are raised, the recording starts, and captures 4.5 seconds of soundless footage, that pops up a save request.</p>
+		To Record I am using <a href="https://www.webrtc-experiment.com/RecordRTC/">RecordRTC</a>. let's just say that it 'works'.
+		<p>As expected this is very much a WIP and mainly a Proof of concept. Thank you for the opportunity and I hope I hear from Outernets very soon. </p>
+		<p><em>gP</em></p>
+
+	</div>
+</body>
+
+</html>

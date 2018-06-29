@@ -2,6 +2,8 @@
 
 to deploy just create a local server and open `index.html`
 
+the way **I** do it is `python -m SimpleHTTPServer portNumberHere`
+
 ### this is better read at the rendered index.html
 
 This simple and hacked together experience is to demonstrate the idea that face tracking might be useful for other things other than giving you bunny ears.

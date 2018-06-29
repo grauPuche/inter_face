@@ -1,8 +1,8 @@
 # README
 
-to deploy just create a local server and open `index.html`
+To deploy just create a local server and open `index.html`
 
-the way **I** do it is `python -m SimpleHTTPServer portNumberHere`
+The way **I** do it is `python -m SimpleHTTPServer portNumberHere`
 
 ### this is better read at the rendered index.html
 

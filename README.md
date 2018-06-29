@@ -1,5 +1,9 @@
 # README
 
+to deploy just create a local server and open `index.html`
+
+### this is better read at the rendered index.html
+
 This simple and hacked together experience is to demonstrate the idea that face tracking might be useful for other things other than giving you bunny ears.
 
 For a while I wanted to try doing something with this kind of tech, but as said, I wanted to go away from the kind of applications that are being done at the moment. My interest was on using the face as an interface (heh..)

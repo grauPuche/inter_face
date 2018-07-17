@@ -101,7 +101,10 @@
 	<script src="./js/emotion_classifier.js"></script>
 	<script src="./js/emotionmodel.js"></script>
 	<div id="content">
-<em style="font-size: 25px; position: relative;bottom: 5px;"><strong >inter(FACE)</strong></em>		<div id="container">
+		<em style="font-size: 25px; position: relative;bottom: 5px;">
+			<strong>inter(FACE)</strong>
+		</em>
+		<div id="container">
 			<video id="videoel" width="800" height="600" preload="auto" loop playsinline autoplay>
 			</video>
 			<canvas id="overlay" width="800" height="600"></canvas>
@@ -294,7 +297,7 @@
 				recorder = null;
 
 				startVideo();
-				
+
 			}
 
 			/******** stats ********/
@@ -342,13 +345,16 @@
 			console.log("video started");
 		</script>
 
-		<div style="padding: 10px; background-color: black; color: white; /* width: 630.8px; float: left;*/ border-top-right-radius: 6px;">
+		<div style="padding: 10px; background-color: black; color: white; /* width: 630.8px; float: left;*/ border-top-right-radius: 6px;border-bottom-right-radius: 6px;">
 			<strong id="data" style="font-size: 30px"></strong>
 			<br>
 			<em> go past
 				<strong>85</strong> to start recording. You do so by
 				<strong>raising your eyebrows. </strong>
 			</em>
+		</div>
+		<div style=" margin-top:3.767px; padding: 10px; background-color: red; color: white; /* width: 630.8px; float: left;*/ border-top-right-radius: 6px;">
+			reload the page if you want to record a new video
 		</div>
 
 		<!-- <button id="FILE">
@@ -360,26 +366,65 @@
 			</strong>
 		</button> -->
 
-		<p>This simple and hacked together experience is to demonstrate the idea that face tracking might be useful for other things
-			other than giving you bunny ears. </p>
-		<p>For a while I wanted to try doing something with this kind of tech, but as said, I wanted to go away from the kind of applications
-			that are being done at the moment. My interest was on using the face as an interface (heh..)</p>
-		<p>At first, the plan was to make a simple text-based narrative video game, where instead of writing what to do, you would
-			have to give a specific expression. Although the idea is feasible, to do it in one day is not. specially when diving into
-			a new technology.</p>
-		<p>So the obvious next step was to make something a bit more simple. So here we are. </p>
-		<p>The framework being used here is
-			<a href="https://github.com/auduno/clmtrackr">clmtrackr</a>. This experience is build from the emotion detection
-			<a href="https://www.auduno.com/clmtrackr/examples/clm_emotiondetection.html">example</a>. I used the example due to it having already part of what I needed, and trying to make a whole new model for the a single eyebrow movement was not worth the time.
-			<br> But this was not my first choice for a framework. The tracking is not very precise and it "jumps" a lot. My initial choice
-			was
-			<a href="https://tastenkunst.github.io/brfv4_javascript_examples/">brfv4</a>, which is very precise and gives a lot of information, but the documentation is not very 'prototyping-in-one-day
-			friendly' so I had to give it up. But for sure is going to be my 'go-to' next time I do a project with face tracking (it
-			just requires a bit more time to use it).</p>
-		<p> What this ended up being, if you haven't tried it already, is a video recording experience. And the interactions is through the eyebrows, when they are raised, the recording starts, and captures 4.5 seconds of soundless footage, that pops up a save request.</p>
-		To Record I am using <a href="https://www.webrtc-experiment.com/RecordRTC/">RecordRTC</a>. let's just say that it 'works'.
-		<p>As expected this is very much a WIP and mainly a Proof of concept. Thank you for the opportunity and I hope I hear from Outernets very soon. </p>
-		<p><em>gP</em></p>
+		<p>This is
+			<strong>inter-face,</strong> the whole point of it is to explore the idea of making face tracking an interface instead of a gimmick
+			that Instagram has. The said gimmick is great, it works and attracts people to it, but that has been very well explored,
+			and in my opinion, this tech can be used for other things. One of them is as an interface.</p>
+		<p>Using it is very simple. The app records
+			<strong>4.5-second video-clips</strong>. and it does so when you
+			<strong>raise your eyebrows</strong>. In this case, the movement is linked to a threshold value, that once exceeded starts recording
+			and then pops up a request to save it.</p>
+		<p>This particular experience is
+			<strong>not finished</strong>, it has plenty of problems but the
+			<strong>main point</strong> that I am trying to get across
+			<strong>is clear</strong>.
+			<br> If it were to be made a
+			<strong>full-fledged experience</strong>. Issues like the permissions wouldn’t be there, and the video, instead of being just
+			saved into the system, it would be used for
+			<strong>something more exciting</strong>.
+			<br> The camera would not need to be right on top of the screen, or would
+			<strong>not even need to be the same camera</strong> that is the one doing the face tracking, getting this way a more interesting
+			shot.
+		</p>
+		<p>This is
+			<strong>just one example</strong> of what can be done with faces being used as an interface. When I started to create this, I
+			just
+			<strong>wanted to explore</strong> a concept that I thought might have
+			<strong>potential</strong>.
+			<br> This app uses only the eyebrows. But you could decide to
+			<strong>use more</strong> parts of the face or even use only the
+			<strong>orientation</strong> of it. And here the output is only a video, but so much more can be done; making the face orientation
+			a mouse, triggering different things depending on what expression you do,
+			<strong>playing pong by looking up and down</strong>.</p>
+		<p>
+			Basically, you have this
+			<strong>new input</strong> that does not require any kind of physical contact and that can be used by pretty much anyone (there
+			are always exceptions).
+			<strong>And you only need a camera, no specialized equipment</strong>.</p>
+		<hr>
+		<p>The
+			<strong>framework</strong> being used to track the face is
+			<a href="https://github.com/auduno/clmtrackr">clmtrackr</a>. This experience is built from the
+			<strong>emotion detection</strong>
+			<a href="https://www.auduno.com/clmtrackr/examples/clm_emotiondetection.html">example</a>. I used the example due to it having already part of
+			<strong>what I needed</strong>, and trying to make a whole new model for a single eyebrow movement was a big hassle. This was
+			<strong>not my first choice</strong> for a framework. The tracking is
+			<strong>not very precise</strong> and it “jumps” a lot.
+			<br> My
+			<strong>initial choice</strong> was
+			<a href="https://tastenkunst.github.io/brfv4_javascript_examples/">brfv4</a>, which is very precise and gives a
+			<strong>lot of information</strong>, but the documentation is not very ‘prototyping-in-one-day friendly’ so I had to give it up.
+			But for sure is going to be my ‘go-to’ next time I do a project with face tracking (it just requires a bit more time to
+			use it).</p>
+		<p>To
+			<strong>record</strong> I am using
+			<a href="https://www.webrtc-experiment.com/RecordRTC/">RecordRTC</a>. let’s just say that it ‘works’.</p>
+
+		<p>As expected this is very much a WIP and mainly a Proof of concept. Thank you for the opportunity and I hope I hear from
+			Outernets very soon. </p>
+		<p>
+			<em>gP</em>
+		</p>
 
 	</div>
 </body>
